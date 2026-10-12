@@ -1,0 +1,13 @@
+# Local secrets — never commit
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/

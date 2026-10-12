@@ -1,0 +1,14 @@
+flask>=3.0
+flask-cors>=4.0
+flask-socketio>=5.3
+gevent>=24.0
+gevent-websocket>=0.10
+python-dotenv>=1.0
+google-generativeai>=0.8.0
+deep-translator>=1.11
+gtts>=2.5
+SpeechRecognition>=3.10
+numpy>=1.24
+opencv-python>=4.8
+mediapipe>=0.10
+torch

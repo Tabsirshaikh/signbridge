@@ -1,0 +1,17 @@
+# ── Core ML ──────────────────────────────────────────────────────────────────
+# Install PyTorch with CUDA 12.4 support (GPU acceleration)
+# If you don't have a CUDA GPU, replace with: pip install torch
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+
+# ── Numerics ──────────────────────────────────────────────────────────────────
+numpy>=1.24.0
+
+# ── Computer Vision ───────────────────────────────────────────────────────────
+opencv-python>=4.8.0
+
+# ── Pose / Hand / Face Landmarks ─────────────────────────────────────────────
+mediapipe>=0.10.0
+
+# ── Grammar correction (Google Translate round-trip) ──────────────────────────
+deep-translator>=1.11.0

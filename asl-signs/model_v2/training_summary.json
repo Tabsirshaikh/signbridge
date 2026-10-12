@@ -1,0 +1,10 @@
+{
+  "best_val_accuracy": 80.48573549687136,
+  "best_val_top5": 91.96097147099374,
+  "best_epoch": 46,
+  "num_classes": 250,
+  "feat_dim": 562,
+  "d_model": 256,
+  "num_layers": 6,
+  "seq_len": 64
+}

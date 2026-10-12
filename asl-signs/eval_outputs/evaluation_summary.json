@@ -1,0 +1,13 @@
+{
+  "test_samples": 9429,
+  "top1_accuracy_pct": 71.3755,
+  "top5_accuracy_pct": 89.6065,
+  "macro_precision_pct": 71.5705,
+  "macro_recall_pct": 71.1778,
+  "macro_f1_pct": 70.88,
+  "weighted_precision_pct": 71.7677,
+  "weighted_recall_pct": 71.3755,
+  "weighted_f1_pct": 71.0807,
+  "inference_seconds": 28.22,
+  "samples_per_second": 334.2
+}

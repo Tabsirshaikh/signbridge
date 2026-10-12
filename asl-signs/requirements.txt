@@ -1,0 +1,28 @@
+# requirements.txt
+# Dependencies for the v2 pipeline:
+#   feature_layout.py · phase2b_features.py · phase3b_train.py · evaluate_v2.py
+#
+# Versions pinned to the environment this was built/verified against
+# (Python 3.13, Windows, NVIDIA RTX 4050, CUDA 12.4).
+#
+# Install into your active environment:
+#   pip install -r requirements.txt
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT — GPU build of PyTorch:
+# The line below pulls the CUDA 12.4 build of torch from PyTorch's own index.
+# A plain `pip install torch` on Windows installs the CPU-only wheel and your
+# RTX 4050 would sit idle. The --extra-index-url makes pip find the +cu124 wheel.
+#
+# If you are instead on a CPU-only machine, delete the --extra-index-url line
+# and change the torch line to just `torch==2.6.0`.
+# ─────────────────────────────────────────────────────────────────────────────
+--extra-index-url https://download.pytorch.org/whl/cu124
+
+torch==2.6.0+cu124        # deep learning framework (training, model, AMP, CUDA)
+
+numpy==2.2.6              # arrays, memmap, all numeric ops
+pandas==2.3.2             # reading train.csv + parquet landmark files
+pyarrow==21.0.0           # parquet engine used by pandas.read_parquet
+scikit-learn==1.7.2       # train_test_split + evaluation metrics
+tqdm==4.67.1              # progress bars during preprocessing

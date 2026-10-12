@@ -1,0 +1,3 @@
+<class 'list'>
+Empty left_hand_landmarks list
+<class 'list'>

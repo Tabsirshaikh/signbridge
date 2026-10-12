@@ -1,0 +1,1 @@
+['face_landmarks', 'pose_landmarks', 'pose_world_landmarks', 'left_hand_landmarks', 'left_hand_world_landmarks', 'right_hand_landmarks', 'right_hand_world_landmarks', 'face_blendshapes', 'segmentation_mask']
