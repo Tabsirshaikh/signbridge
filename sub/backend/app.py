@@ -12,7 +12,8 @@ REST routes (unchanged):
 
 Run:
   pip install -r requirements.txt
-  python app.py
+  python app.py                          # v1 model (default)
+  $env:SIGNBRIDGE_MODEL="v2"; python app.py   # fine-tuned v2 model
 """
 
 # ── gevent monkey-patch MUST be the very first import ───────────────────────
@@ -74,20 +75,33 @@ LANG_CODES = {
     "arabic":  "ar",
 }
 
-# ── Load v2 model (562-dim lip-aware features, groups=1) ──────────────────────
-# Model class + feature extraction live in asl_infer_v2 (importable because
+# ── Load model: v1 (default) or v2, chosen with SIGNBRIDGE_MODEL ──────────────
+#   v1 : 402-dim hands + pose features, groups=3   (asl_infer_v1, model/)
+#   v2 : 562-dim lip-aware fine-tuned features     (asl_infer_v2, model_v2/)
+# Model class + feature extraction live in asl_infer_v* (importable because
 # MODEL_DIR was added to sys.path above) so live inference matches training.
-import asl_infer_v2 as infer
+MODEL_VERSION = os.getenv("SIGNBRIDGE_MODEL", "v1").strip().lower()
+MODEL_INFO = {
+    "v1": {"module": "asl_infer_v1", "dir": "model",    "label": "v1 · baseline"},
+    "v2": {"module": "asl_infer_v2", "dir": "model_v2", "label": "v2 · fine-tuned"},
+}
+if MODEL_VERSION not in MODEL_INFO:
+    raise SystemExit(f"SIGNBRIDGE_MODEL must be one of {sorted(MODEL_INFO)}, got '{MODEL_VERSION}'")
 
-print("Loading model …")
-_labels_path = os.path.join(MODEL_DIR, "model_v2", "labels.json")
-_model_path  = os.path.join(MODEL_DIR, "model_v2", "best_model.pt")
+import importlib
+infer = importlib.import_module(MODEL_INFO[MODEL_VERSION]["module"])
+MODEL_LABEL = MODEL_INFO[MODEL_VERSION]["label"]
+
+print(f"Loading model {MODEL_VERSION} …")
+_model_subdir = MODEL_INFO[MODEL_VERSION]["dir"]
+_labels_path  = os.path.join(MODEL_DIR, _model_subdir, "labels.json")
+_model_path   = os.path.join(MODEL_DIR, _model_subdir, "best_model.pt")
 
 PREDICTOR = infer.Predictor(_model_path, _labels_path, device=DEVICE)
 LABELS    = PREDICTOR.labels
 _cfg      = PREDICTOR.cfg
 _USE_AMP  = PREDICTOR.use_amp
-print(f"Model loaded - {len(LABELS)} classes | device: {DEVICE} | "
+print(f"Model {MODEL_VERSION} loaded - {len(LABELS)} classes | device: {DEVICE} | "
       f"amp: {_USE_AMP} | feat_dim: {_cfg['feat_dim']}")
 
 # ── MediaPipe holistic ────────────────────────────────────────────────────────
@@ -120,15 +134,15 @@ _last_pred_time = 0.0
 _last_preds     = []
 
 
-# ── Keypoint helpers (v2: lips-aware, see asl_infer_v2.py) ────────────────────
+# ── Keypoint helpers (v1: 201-dim hands+pose, v2: 281-dim incl. 40 lips) ──────
 def extract_keypoints(results):
-    """One (281,) frame: left_hand + right_hand + pose[:25] + 40 lips."""
+    """One feature frame for the active model (see asl_infer_v1/v2.py)."""
     return infer.extract_frame(results)
 
 
 @torch.no_grad()
 def predict(sequence):
-    """sequence: list of (281,) frames -> [{'word','conf'}, ...] top-5."""
+    """sequence: list of per-frame features -> [{'word','conf'}, ...] top-5."""
     return [{"word": w, "conf": round(c, 3)}
             for w, c in PREDICTOR.predict(sequence, topk=5)]
 
@@ -257,6 +271,7 @@ def on_frame(data):
             "landmarks":   raw_landmarks,
             "buf_fill":    len(FRAME_BUF),
             "buf_max":     SEQ_LEN,
+            "model":       MODEL_VERSION,
         })
 
     except Exception as e:
@@ -269,6 +284,8 @@ def on_frame(data):
 def health():
     return jsonify({
         "status":       "ok",
+        "model":        MODEL_VERSION,
+        "model_label":  MODEL_LABEL,
         "model_classes": len(LABELS),
         "device":       DEVICE,
         "amp":          _USE_AMP,
@@ -392,5 +409,5 @@ def speech_to_text():
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print(f"\nSignBridge backend starting on http://localhost:5000")
-    print(f"  Device: {DEVICE} | AMP: {_USE_AMP} | pred_interval: {PRED_INTERVAL}s\n")
+    print(f"  Model: {MODEL_VERSION} | Device: {DEVICE} | AMP: {_USE_AMP} | pred_interval: {PRED_INTERVAL}s\n")
     socketio.run(app, host="0.0.0.0", port=5000, debug=False)

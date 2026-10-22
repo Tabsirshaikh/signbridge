@@ -64,6 +64,14 @@ export default function Direction1({ onBack }) {
   const [loading,      setLoading]      = useState(false)
   const [camError,     setCamError]     = useState(null)
   const [wsStatus,     setWsStatus]     = useState('disconnected') // 'connected'|'disconnected'
+  const [modelLabel,   setModelLabel]   = useState('')           // e.g. 'v1 · baseline'
+
+  // Ask the backend which model (v1 / v2) it is serving
+  useEffect(() => {
+    axios.get(`${API}/`)
+      .then(res => setModelLabel(res.data.model_label || res.data.model || ''))
+      .catch(() => {})
+  }, [])
 
   // ── WebSocket connection ────────────────────────────────────────────────────
   useEffect(() => {
@@ -299,7 +307,7 @@ export default function Direction1({ onBack }) {
           <button className="back-btn" onClick={onBack} title="Back (Q)">←</button>
           <h1 className="screen-title">Gesture to language</h1>
           <span className="screen-tag">
-            Camera · live interpretation
+            Camera · live interpretation{modelLabel && ` · model ${modelLabel}`}
             <span
               title={`WebSocket: ${wsStatus}`}
               style={{

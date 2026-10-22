@@ -1,6 +1,10 @@
 # SignBridge: backend in a new window + frontend in this terminal (both start right away).
 # First model load can take 1-2 minutes. Vite starts at http://localhost:3000 right away.
 # Put your Gemini key in backend\.env (see README).
+param(
+    [ValidateSet("v1", "v2")]
+    [string]$Model = "v1"   # v1 = baseline, v2 = fine-tuned lip-aware model
+)
 $Root = $PSScriptRoot
 $Backend = Join-Path $Root "backend"
 $Frontend = Join-Path $Root "frontend"
@@ -14,7 +18,7 @@ Write-Host "Opening backend in a new window (leave it open - first load is slow)
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location -LiteralPath '$Backend'; Write-Host 'Starting Flask on http://127.0.0.1:5000 ...' -ForegroundColor Cyan; python app.py"
+    "Set-Location -LiteralPath '$Backend'; `$env:SIGNBRIDGE_MODEL='$Model'; Write-Host 'Starting Flask ($Model model) on http://127.0.0.1:5000 ...' -ForegroundColor Cyan; python app.py"
 )
 
 Write-Host ""

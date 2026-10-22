@@ -146,8 +146,11 @@ signbridge/
 │   │   ├── package.json               # Node.js dependencies (Framer Motion, Socket.IO client)
 │   │   └── vite.config.js             # Vite configuration
 │   ├── New folder (2)/                # Production inference runtime
-│   │   ├── asl_infer_v2.py            # Real-time PyTorch inference engine
-│   │   ├── best_model.pt              # Production weights (14 MB)
+│   │   ├── asl_infer_v1.py            # v1 (baseline) inference engine – default
+│   │   ├── asl_infer_v2.py            # v2 (fine-tuned, lip-aware) inference engine
+│   │   ├── model/                     # v1 weights + labels
+│   │   ├── model_v2/                  # v2 weights + labels
+│   │   ├── best_model.pt              # v1 weights (legacy copy, 14 MB)
 │   │   └── holistic_landmarker.task   # MediaPipe task runtime (13 MB)
 │   └── run-dev.ps1                    # One-click Windows startup script
 ├── .gitignore                         # Comprehensive gitignore (excludes heavy datasets & venvs)
@@ -240,6 +243,28 @@ npm run dev
 ```
 
 Open your browser at **`http://localhost:3000`** to start using SignBridge!
+
+### Choosing the model (v1 or v2)
+
+Both checkpoints ship in the repo and the backend can serve either one. **v1 is the default.**
+
+| Model | Features | Checkpoint | Inference module |
+|---|---|---|---|
+| **v1** (baseline) | 402-dim: hands + pose (+ velocity), `groups=3` conv stem | `sub/New folder (2)/model/` | `asl_infer_v1.py` |
+| **v2** (fine-tuned) | 562-dim: hands + pose + 40 lip points (+ velocity), `groups=1` | `sub/New folder (2)/model_v2/` | `asl_infer_v2.py` |
+
+Select it with the `SIGNBRIDGE_MODEL` environment variable (`v1` or `v2`):
+
+```powershell
+# one-click script
+.\sub\run-dev.ps1 -Model v2
+
+# or manually
+cd sub/backend
+$env:SIGNBRIDGE_MODEL = "v2"; python app.py
+```
+
+The active model is reported by `GET /` (`model`, `model_label`), attached to every Socket.IO `prediction` event, and shown in the **Gesture to language** header.
 
 ---
 
